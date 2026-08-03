@@ -11,11 +11,11 @@ on:
       clean:
         description: "Clean previous outputs before run?"
         required: false
-        default: "false"
+        default: "true"
         type: choice
         options:
-          - "false"
           - "true"
+          - "false"
 
   # ── Daily schedule: 06:00 AM IST = 00:30 UTC ─────────────────────────────
   schedule:
@@ -49,9 +49,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # ── 4. Optionally clean previous outputs ─────────────────────────────
-      - name: Clean previous outputs (if requested)
-        if: github.event.inputs.clean == 'true'
+      # ── 4. Clean previous outputs ─────────────────────────────────────────
+      - name: Clean previous outputs
+        if: github.event.inputs.clean != 'false'
         run: python3 clean_pipeline.py
 
       # ── 5. Run the full pipeline ──────────────────────────────────────────
