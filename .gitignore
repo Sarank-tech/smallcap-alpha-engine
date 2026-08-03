@@ -1,0 +1,36 @@
+# ── Generated pipeline outputs (recreated on every run) ──────────────────────
+outputs/*.csv
+outputs/*.log
+outputs/*.md
+outputs/research/
+outputs/reports/
+
+# Keep the outputs/ folder itself tracked (needed by pipeline scripts)
+!outputs/.gitkeep
+
+# Generated dashboard (published via GitHub Actions → GitHub Pages)
+index.html
+
+# gh-pages staging folder (created at CI time)
+gh-pages/
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env

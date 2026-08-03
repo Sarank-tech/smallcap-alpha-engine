@@ -1,0 +1,10 @@
+# Pipeline dependencies (used by GitHub Actions runner)
+pandas>=2.0.0
+numpy>=1.24.0
+yfinance>=0.2.40
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+niftystocks>=0.6
+pypdf>=4.0.0
+python-docx>=1.1.0
+reportlab>=4.0.0

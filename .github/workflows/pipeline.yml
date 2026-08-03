@@ -1,0 +1,95 @@
+name: NSE Multibagger Pipeline
+
+on:
+  # ── Manual trigger from GitHub UI (with optional capital input) ──────────
+  workflow_dispatch:
+    inputs:
+      capital:
+        description: "Portfolio capital in INR (e.g. 100000 for ₹1L, 2500000 for ₹25L)"
+        required: false
+        default: "100000"
+      clean:
+        description: "Clean previous outputs before run?"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+  # ── Daily schedule: 06:00 AM IST = 00:30 UTC ─────────────────────────────
+  schedule:
+    - cron: "30 0 * * *"
+
+# Allow the workflow to write back to the repo (for gh-pages)
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  run-pipeline:
+    name: Run 5-Stage Pipeline & Publish Dashboard
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # ── 1. Checkout the repository ────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Python ──────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # ── 3. Install pipeline dependencies ─────────────────────────────────
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # ── 4. Optionally clean previous outputs ─────────────────────────────
+      - name: Clean previous outputs (if requested)
+        if: github.event.inputs.clean == 'true'
+        run: python3 clean_pipeline.py
+
+      # ── 5. Run the full pipeline ──────────────────────────────────────────
+      - name: Run full pipeline
+        run: |
+          CAPITAL="${{ github.event.inputs.capital || '100000' }}"
+          echo "Running pipeline with capital = ₹${CAPITAL}"
+          python3 run_pipeline.py --capital "$CAPITAL"
+
+      # ── 6. Copy outputs needed for the dashboard page ─────────────────────
+      - name: Prepare dashboard for GitHub Pages
+        run: |
+          mkdir -p gh-pages
+          cp index.html gh-pages/index.html
+          # Copy CSVs alongside so dashboard JS can optionally reference them
+          cp -r outputs/*.csv gh-pages/ 2>/dev/null || true
+          cp outputs/portfolio_strategy_report.md gh-pages/ 2>/dev/null || true
+          cp outputs/final_investment_report.md gh-pages/ 2>/dev/null || true
+
+      # ── 7. Add a run timestamp to the pages folder ────────────────────────
+      - name: Write run metadata
+        run: |
+          echo "Last pipeline run: $(date -u '+%Y-%m-%d %H:%M UTC') (06:00 IST)" > gh-pages/last_run.txt
+          cat gh-pages/last_run.txt
+
+      # ── 8. Deploy to GitHub Pages ─────────────────────────────────────────
+      - name: Deploy dashboard to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./gh-pages
+          commit_message: "📊 Dashboard updated — ${{ github.run_id }}"
+          force_orphan: true   # keeps gh-pages branch clean (no history bloat)
+
+      # ── 9. Print summary ──────────────────────────────────────────────────
+      - name: Pipeline summary
+        run: |
+          echo "✅ Pipeline completed successfully"
+          echo "📊 Dashboard published to GitHub Pages"
+          echo "🔗 View at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          ls -lh outputs/ || true
