@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSE Multibagger Stock Discovery & Portfolio Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0B0F19;
+      --bg-card: #131B2E;
+      --bg-card-hover: #1A243B;
+      --border-color: #232F4A;
+      --border-glow: #3B82F6;
+      --text-main: #F1F5F9;
+      --text-muted: #94A3B8;
+      --accent-blue: #3B82F6;
+      --accent-emerald: #10B981;
+      --accent-purple: #8B5CF6;
+      --accent-amber: #F59E0B;
+      --accent-rose: #F43F5E;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 30px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .header-title h1 {
+      font-family: var(--font-heading);
+      font-size: 26px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #60A5FA, #A78BFA, #34D399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .header-title p {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .header-badge {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93C5FD;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    /* KPI Summary Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 35px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent-blue);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+
+    .kpi-card.blue::before { background: var(--accent-blue); }
+    .kpi-card.emerald::before { background: var(--accent-emerald); }
+    .kpi-card.purple::before { background: var(--accent-purple); }
+    .kpi-card.amber::before { background: var(--accent-amber); }
+
+    .kpi-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .kpi-value {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .kpi-subtext {
+      font-size: 12px;
+      color: var(--accent-emerald);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* Navigation Tabs */
+    .tabs-nav {
+      display: flex;
+      gap: 10px;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 30px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn.active {
+      color: #60A5FA;
+      border-bottom-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    /* Search & Filter Bar */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      position: relative;
+      width: 320px;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 16px 10px 40px;
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .search-box::before {
+      content: '🔍';
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: 0.6;
+    }
+
+    /* Tab Content Section */
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tables */
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background: #172036;
+      color: #94A3B8;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 11px;
+    }
+
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      color: #E2E8F0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background-color: var(--bg-card-hover);
+    }
+
+    /* Badges & Tags */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-rank {
+      background: rgba(245, 158, 11, 0.15);
+      color: #FBBF24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-p1 {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-p2 {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60A5FA;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .badge-p3 {
+      background: rgba(245, 158, 11, 0.15);
+      color: #FBBF24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-exceptional {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10B981;
+      border: 1px solid #10B981;
+    }
+
+    .badge-strong {
+      background: rgba(59, 130, 246, 0.2);
+      color: #3B82F6;
+      border: 1px solid #3B82F6;
+    }
+
+    .badge-watchlist {
+      background: rgba(245, 158, 11, 0.2);
+      color: #F59E0B;
+      border: 1px solid #F59E0B;
+    }
+
+    .ticker-symbol {
+      font-weight: 700;
+      color: #60A5FA;
+      font-family: var(--font-heading);
+    }
+
+    .score-pill {
+      display: inline-block;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .thesis-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-width: 340px;
+      line-height: 1.4;
+    }
+
+    /* Card Details Grid */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .stock-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .stock-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    .stock-title {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .stock-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+    }
+
+    .metric-row:last-child {
+      border-bottom: none;
+    }
+
+    .metric-name {
+      color: var(--text-muted);
+    }
+
+    .metric-val {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 50px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-color);
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <h1>NSE Multibagger Discovery System</h1>
+      <p>5-Stage Quantitative & Qualitative Equity Research Dashboard</p>
+    </div>
+    <div class="header-badge">
+      Last Updated: <span id="gen-date">13 September 2026, 05:14:44</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- KPI Summary Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card blue">
+        <div class="kpi-label">Universe Screened</div>
+        <div class="kpi-value">250</div>
+        <div class="kpi-subtext">Nifty Smallcap 250 Index</div>
+      </div>
+      <div class="kpi-card emerald">
+        <div class="kpi-label">Passed Survival Filter</div>
+        <div class="kpi-value" id="kpi-passed">7</div>
+        <div class="kpi-subtext">Clean Balance Sheet & Turnaround</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-label">Top Ranked Candidate</div>
+        <div class="kpi-value" id="kpi-top-ticker">CONCORDBIO</div>
+        <div class="kpi-subtext" id="kpi-top-score">Score: 91.91 / 100</div>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-label">Portfolio Capital</div>
+        <div class="kpi-value" id="kpi-total-capital">₹100,010</div>
+        <div class="kpi-subtext">Dynamic Allocation Plan</div>
+      </div>
+    </div>
+
+    <!-- Toolbar (Search) -->
+    <div class="toolbar">
+      <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('stage5')">Stage 5: Portfolio Plan</button>
+        <button class="tab-btn" onclick="switchTab('stage4')">Stage 4: Final Rankings</button>
+        <button class="tab-btn" onclick="switchTab('stage3')">Stage 3: AI Business Scores</button>
+        <button class="tab-btn" onclick="switchTab('stage2')">Stage 2: Momentum Scores</button>
+        <button class="tab-btn" onclick="switchTab('stage1')">Stage 1: Survival Screener</button>
+      </div>
+
+      <div class="search-box">
+        <input type="text" id="searchInput" onkeyup="filterTables()" placeholder="Search by Ticker or Category...">
+      </div>
+    </div>
+
+    <!-- STAGE 5 PANE -->
+    <div id="pane-stage5" class="tab-pane active">
+      <div class="table-container">
+        <table id="table-stage5">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Ticker</th>
+              <th>Final Score</th>
+              <th>Allocation %</th>
+              <th>Position Size (₹)</th>
+              <th>Buy Priority</th>
+              <th>Holding Period</th>
+              <th>Slab-Wise Profit Booking Strategy</th>
+              <th>Hard Stop Loss</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-stage5"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STAGE 4 PANE -->
+    <div id="pane-stage4" class="tab-pane">
+      <div class="table-container">
+        <table id="table-stage4">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Ticker</th>
+              <th>Final Score</th>
+              <th>Financial (25%)</th>
+              <th>Momentum (35%)</th>
+              <th>AI Score (40%)</th>
+              <th>Category</th>
+              <th>Archetype</th>
+              <th>Recommendation</th>
+              <th>Investment Thesis</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-stage4"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STAGE 3 PANE -->
+    <div id="pane-stage3" class="tab-pane">
+      <div class="table-container">
+        <table id="table-stage3">
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>AI Score</th>
+              <th>Business Quality</th>
+              <th>Growth Visibility</th>
+              <th>Management</th>
+              <th>Competitive Moat</th>
+              <th>Risk Safety</th>
+              <th>Long-Term Potential</th>
+              <th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-stage3"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STAGE 2 PANE -->
+    <div id="pane-stage2" class="tab-pane">
+      <div class="table-container">
+        <table id="table-stage2">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Ticker</th>
+              <th>Momentum Score</th>
+              <th>Revenue Growth</th>
+              <th>Net Income Growth</th>
+              <th>EBITDA Trend</th>
+              <th>Op Margin Trend</th>
+              <th>EPS Trend</th>
+              <th>Debt Trend</th>
+              <th>Active Metrics</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-stage2"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STAGE 1 PANE -->
+    <div id="pane-stage1" class="tab-pane">
+      <div class="table-container">
+        <table id="table-stage1">
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Market Cap (Cr)</th>
+              <th>3M Avg Volume</th>
+              <th>Debt / Equity</th>
+              <th>Q1 Net Income (Cr)</th>
+              <th>Current Price</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-stage1"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer>
+      <p>NSE Multibagger Stock Discovery System v5.0 — Automated Pipeline Dashboard</p>
+      <p>For educational & quantitative research purposes only. Not financial advice.</p>
+    </footer>
+
+  </div>
+
+  <script>
+    const DATA = {
+  "generated_at": "13 September 2026, 05:14:44",
+  "stage1": [
+    {
+      "Ticker": "BLS.NS",
+      "Market Cap (Cr)": 9530.03,
+      "3M Avg Vol": 2051381,
+      "Debt/Equity": 0.15,
+      "Q1 Net Income": 190.07,
+      "Current Price": 231.58,
+      "Status": "PASSED"
+    },
+    {
+      "Ticker": "CLEAN.NS",
+      "Market Cap (Cr)": 8949.65,
+      "3M Avg Vol": 445758,
+      "Debt/Equity": 0.14,
+      "Q1 Net Income": 73.35,
+      "Current Price": 842.05,
+      "Status": "PASSED"
+    },
+    {
+      "Ticker": "JUBLINGREA.NS",
+      "Market Cap (Cr)": 10384.06,
+      "3M Avg Vol": 414479,
+      "Debt/Equity": 0.25,
+      "Q1 Net Income": 105.82,
+      "Current Price": 658.4,
+      "Status": "PASSED"
+    },
+    {
+      "Ticker": "NUVOCO.NS",
+      "Market Cap (Cr)": 11791.51,
+      "3M Avg Vol": 1650018,
+      "Debt/Equity": 0.48,
+      "Q1 Net Income": 159.76,
+      "Current Price": 330.15,
+      "Status": "PASSED"
+    },
+    {
+      "Ticker": "TRIDENT.NS",
+      "Market Cap (Cr)": 11918.57,
+      "3M Avg Vol": 5619652,
+      "Debt/Equity": 0.38,
+      "Q1 Net Income": 158.09,
+      "Current Price": 23.39,
+      "Status": "PASSED"
+    },
+    {
+      "Ticker": "WHIRLPOOL.NS",
+      "Market Cap (Cr)": 9675.77,
+      "3M Avg Vol": 383967,
+      "Debt/Equity": 0.09,
+      "Q1 Net Income": 102.88,
+      "Current Price": 762.35,
+      "Status": "PASSED"
+    }
+  ],
+  "stage2": [
+    {
+      "Rank": 1,
+      "Ticker": "JUBLINGREA.NS",
+      "Momentum Score": 75.68,
+      "Revenue Growth Score": 82.5,
+      "Net Income Growth Score": 81.0,
+      "EBITDA Trend Score": 69.88,
+      "Op Margin Trend Score": 62.77,
+      "EPS Trend Score": 77.67,
+      "OCF Trend Score": "N/A",
+      "Debt Trend Score": 85.0,
+      "Profitability Score": 70.0,
+      "Active Metrics": "7/8",
+      "Status": "PASSED"
+    },
+    {
+      "Rank": 2,
+      "Ticker": "BLS.NS",
+      "Momentum Score": 73.94,
+      "Revenue Growth Score": 72.5,
+      "Net Income Growth Score": 75.63,
+      "EBITDA Trend Score": 64.23,
+      "Op Margin Trend Score": 74.78,
+      "EPS Trend Score": 68.2,
+      "OCF Trend Score": "N/A",
+      "Debt Trend Score": 85.0,
+      "Profitability Score": 100.0,
+      "Active Metrics": "7/8",
+      "Status": "PASSED"
+    },
+    {
+      "Rank": 3,
+      "Ticker": "TRIDENT.NS",
+      "Momentum Score": 72.5,
+      "Revenue Growth Score": 56.37,
+      "Net Income Growth Score": 81.0,
+      "EBITDA Trend Score": 80.07,
+      "Op Margin Trend Score": 80.01,
+      "EPS Trend Score": 77.67,
+      "OCF Trend Score": "N/A",
+      "Debt Trend Score": 65.0,
+      "Profitability Score": 55.0,
+      "Active Metrics": "7/8",
+      "Status": "PASSED"
+    },
+    {
+      "Rank": 4,
+      "Ticker": "CLEAN.NS",
+      "Momentum Score": 67.84,
+      "Revenue Growth Score": 70.26,
+      "Net Income Growth Score": 81.0,
+      "EBITDA Trend Score": 46.53,
+      "Op Margin Trend Score": 60.0,
+      "EPS Trend Score": 63.25,
+      "OCF Trend Score": "N/A",
+      "Debt Trend Score": 100.0,
+      "Profitability Score": 70.0,
+      "Active Metrics": "7/8",
+      "Status": "PASSED"
+    },
+    {
+      "Rank": 5,
+      "Ticker": "NUVOCO.NS",
+      "Momentum Score": 62.16,
+      "Revenue Growth Score": 59.46,
+      "Net Income Growth Score": 81.0,
+      "EBITDA Trend Score": 44.21,
+      "Op Margin Trend Score": 54.72,
+      "EPS Trend Score": 77.67,
+      "OCF Trend Score": "N/A",
+      "Debt Trend Score": 50.0,
+      "Profitability Score": 55.0,
+      "Active Metrics": "7/8",
+      "Status": "PASSED"
+    },
+    {
+      "Rank": 6,
+      "Ticker": "WHIRLPOOL.NS",
+      "Momentum Score": 51.1,
+      "Revenue Growth Score": 71.05,
+      "Net Income Growth Score": 81.0,
+      "EBITDA Trend Score": 21.01,
+      "Op Margin Trend Score": 12.44,
+      "EPS Trend Score": 35.67,
+      "OCF Trend Score": "N/A",
+      "Debt Trend Score": 85.0,
+      "Profitability Score": 55.0,
+      "Active Metrics": "7/8",
+      "Status": "PASSED"
+    }
+  ],
+  "stage3": [
+    {
+      "Ticker": "JUBLINGREA.NS",
+      "Momentum Score": 75.68,
+      "Business Quality": 79.9,
+      "Growth Visibility": 78.11,
+      "Management": 79.33,
+      "Competitive Advantage": 78.6,
+      "Risk": 89.87,
+      "Long-Term Potential": 77.63,
+      "Confidence": 85.0,
+      "Final AI Score": 79.8
+    },
+    {
+      "Ticker": "BLS.NS",
+      "Momentum Score": 73.94,
+      "Business Quality": 78.24,
+      "Growth Visibility": 76.55,
+      "Management": 77.85,
+      "Competitive Advantage": 77.07,
+      "Risk": 93.81,
+      "Long-Term Potential": 76.02,
+      "Confidence": 85.0,
+      "Final AI Score": 78.78
+    },
+    {
+      "Ticker": "TRIDENT.NS",
+      "Momentum Score": 72.5,
+      "Business Quality": 76.88,
+      "Growth Visibility": 75.25,
+      "Management": 76.62,
+      "Competitive Advantage": 75.8,
+      "Risk": 84.67,
+      "Long-Term Potential": 74.7,
+      "Confidence": 85.0,
+      "Final AI Score": 76.7
+    },
+    {
+      "Ticker": "CLEAN.NS",
+      "Momentum Score": 67.84,
+      "Business Quality": 72.45,
+      "Growth Visibility": 71.06,
+      "Management": 72.66,
+      "Competitive Advantage": 71.7,
+      "Risk": 99.95,
+      "Long-Term Potential": 70.41,
+      "Confidence": 85.0,
+      "Final AI Score": 74.43
+    },
+    {
+      "Ticker": "NUVOCO.NS",
+      "Momentum Score": 62.16,
+      "Business Quality": 67.05,
+      "Growth Visibility": 65.94,
+      "Management": 67.84,
+      "Competitive Advantage": 66.7,
+      "Risk": 80.78,
+      "Long-Term Potential": 65.19,
+      "Confidence": 85.0,
+      "Final AI Score": 67.89
+    },
+    {
+      "Ticker": "WHIRLPOOL.NS",
+      "Momentum Score": 51.1,
+      "Business Quality": 60.0,
+      "Growth Visibility": 60.0,
+      "Management": 65.0,
+      "Competitive Advantage": 56.97,
+      "Risk": 96.55,
+      "Long-Term Potential": 65.0,
+      "Confidence": 85.0,
+      "Final AI Score": 64.95
+    }
+  ],
+  "stage4": [
+    {
+      "Rank": 1,
+      "Ticker": "JUBLINGREA.NS",
+      "Final Score": 80.91,
+      "Financial Score": 90.0,
+      "Momentum Score": 75.68,
+      "AI Business Score": 79.8,
+      "Investment Category": "\u2605\u2605\u2605\u2605 Strong Candidate",
+      "Confidence": 85.0,
+      "Investment Thesis": "Accelerating sequential quarterly profit recovery backed by operational deleveraging and demand turnaround.",
+      "Recommendation": "Accumulate",
+      "Classification": "Turnaround Opportunity"
+    },
+    {
+      "Rank": 2,
+      "Ticker": "BLS.NS",
+      "Final Score": 79.89,
+      "Financial Score": 90.0,
+      "Momentum Score": 73.94,
+      "AI Business Score": 78.78,
+      "Investment Category": "\u2605\u2605\u2605 Watchlist Candidate",
+      "Confidence": 85.0,
+      "Investment Thesis": "Attractive niche market positioning with expanding capacity and conservative capital allocation.",
+      "Recommendation": "Watchlist / Hold",
+      "Classification": "Special Situation"
+    },
+    {
+      "Rank": 3,
+      "Ticker": "TRIDENT.NS",
+      "Final Score": 76.81,
+      "Financial Score": 83.0,
+      "Momentum Score": 72.5,
+      "AI Business Score": 76.7,
+      "Investment Category": "\u2605\u2605\u2605 Watchlist Candidate",
+      "Confidence": 85.0,
+      "Investment Thesis": "Riding sector capex tailwinds and robust order book execution with positive operating cash flow trends.",
+      "Recommendation": "Watchlist / Hold",
+      "Classification": "Cyclical Recovery"
+    },
+    {
+      "Rank": 4,
+      "Ticker": "CLEAN.NS",
+      "Final Score": 74.77,
+      "Financial Score": 85.0,
+      "Momentum Score": 67.84,
+      "AI Business Score": 74.43,
+      "Investment Category": "\u2605\u2605\u2605 Watchlist Candidate",
+      "Confidence": 85.0,
+      "Investment Thesis": "Attractive niche market positioning with expanding capacity and conservative capital allocation.",
+      "Recommendation": "Watchlist / Hold",
+      "Classification": "Special Situation"
+    },
+    {
+      "Rank": 5,
+      "Ticker": "NUVOCO.NS",
+      "Final Score": 68.16,
+      "Financial Score": 77.0,
+      "Momentum Score": 62.16,
+      "AI Business Score": 67.89,
+      "Investment Category": "Monitor",
+      "Confidence": 85.0,
+      "Investment Thesis": "Attractive niche market positioning with expanding capacity and conservative capital allocation.",
+      "Recommendation": "Monitor",
+      "Classification": "Special Situation"
+    },
+    {
+      "Rank": 6,
+      "Ticker": "WHIRLPOOL.NS",
+      "Final Score": 67.62,
+      "Financial Score": 95.0,
+      "Momentum Score": 51.1,
+      "AI Business Score": 64.95,
+      "Investment Category": "Monitor",
+      "Confidence": 85.0,
+      "Investment Thesis": "Attractive niche market positioning with expanding capacity and conservative capital allocation.",
+      "Recommendation": "Monitor",
+      "Classification": "Special Situation"
+    }
+  ],
+  "stage5": [
+    {
+      "Rank": 1,
+      "Ticker": "JUBLINGREA.NS",
+      "Final Score": 80.91,
+      "Allocation %": 22.95,
+      "Position Size (INR)": 22950.0,
+      "Buy Priority": "P2 - Tactical Accumulation on Dips",
+      "Risk Level": "Moderate Risk (Growth Capital)",
+      "Suggested Holding Period": "12 \u2013 18 Months (Earnings Normalization)",
+      "Slab-wise Profit Booking": "Slab 1: 20% at +25% | Slab 2: 20% at +50% | Slab 3: 20% at +75% | Slab 4: 20% at +100% | Runner: Hold 20% with 15% trailing stop",
+      "Stop Loss Rule": "Hard Stop Loss: -12.0% from avg cost | Trailing Stop Loss: 15.0% below peak once gain > +50%",
+      "Thesis Break Rules": "Debt-to-Equity ratio exceeds 0.50 ; Two consecutive quarters of QoQ Net Income decline ; Promoter stake reduction > 3.0% in a single quarter ; Auditor resignation or major regulatory warning",
+      "Investment Category": "\u2605\u2605\u2605\u2605 Strong Candidate",
+      "Classification": "Turnaround Opportunity",
+      "Investment Thesis": "Accelerating sequential quarterly profit recovery backed by operational deleveraging and demand turnaround."
+    },
+    {
+      "Rank": 2,
+      "Ticker": "BLS.NS",
+      "Final Score": 79.89,
+      "Allocation %": 21.83,
+      "Position Size (INR)": 21830.0,
+      "Buy Priority": "P3 - Secondary Growth Satellite",
+      "Risk Level": "Moderate Risk (Growth Capital)",
+      "Suggested Holding Period": "6 \u2013 12 Months (Tactical Trade)",
+      "Slab-wise Profit Booking": "Slab 1: 20% at +25% | Slab 2: 20% at +50% | Slab 3: 20% at +75% | Slab 4: 20% at +100% | Runner: Hold 20% with 15% trailing stop",
+      "Stop Loss Rule": "Hard Stop Loss: -12.0% from avg cost | Trailing Stop Loss: 15.0% below peak once gain > +50%",
+      "Thesis Break Rules": "Debt-to-Equity ratio exceeds 0.50 ; Two consecutive quarters of QoQ Net Income decline ; Promoter stake reduction > 3.0% in a single quarter ; Auditor resignation or major regulatory warning",
+      "Investment Category": "\u2605\u2605\u2605 Watchlist Candidate",
+      "Classification": "Special Situation",
+      "Investment Thesis": "Attractive niche market positioning with expanding capacity and conservative capital allocation."
+    },
+    {
+      "Rank": 3,
+      "Ticker": "TRIDENT.NS",
+      "Final Score": 76.81,
+      "Allocation %": 18.54,
+      "Position Size (INR)": 18540.0,
+      "Buy Priority": "P3 - Secondary Growth Satellite",
+      "Risk Level": "Elevated Risk (High Volatility)",
+      "Suggested Holding Period": "12 \u2013 24 Months (Capex Cycle Duration)",
+      "Slab-wise Profit Booking": "Slab 1: 20% at +25% | Slab 2: 20% at +50% | Slab 3: 20% at +75% | Slab 4: 20% at +100% | Runner: Hold 20% with 15% trailing stop",
+      "Stop Loss Rule": "Hard Stop Loss: -12.0% from avg cost | Trailing Stop Loss: 15.0% below peak once gain > +50%",
+      "Thesis Break Rules": "Debt-to-Equity ratio exceeds 0.50 ; Two consecutive quarters of QoQ Net Income decline ; Promoter stake reduction > 3.0% in a single quarter ; Auditor resignation or major regulatory warning",
+      "Investment Category": "\u2605\u2605\u2605 Watchlist Candidate",
+      "Classification": "Cyclical Recovery",
+      "Investment Thesis": "Riding sector capex tailwinds and robust order book execution with positive operating cash flow trends."
+    },
+    {
+      "Rank": 4,
+      "Ticker": "CLEAN.NS",
+      "Final Score": 74.77,
+      "Allocation %": 16.47,
+      "Position Size (INR)": 16470.0,
+      "Buy Priority": "P3 - Secondary Growth Satellite",
+      "Risk Level": "Elevated Risk (High Volatility)",
+      "Suggested Holding Period": "6 \u2013 12 Months (Tactical Trade)",
+      "Slab-wise Profit Booking": "Slab 1: 20% at +25% | Slab 2: 20% at +50% | Slab 3: 20% at +75% | Slab 4: 20% at +100% | Runner: Hold 20% with 15% trailing stop",
+      "Stop Loss Rule": "Hard Stop Loss: -12.0% from avg cost | Trailing Stop Loss: 15.0% below peak once gain > +50%",
+      "Thesis Break Rules": "Debt-to-Equity ratio exceeds 0.50 ; Two consecutive quarters of QoQ Net Income decline ; Promoter stake reduction > 3.0% in a single quarter ; Auditor resignation or major regulatory warning",
+      "Investment Category": "\u2605\u2605\u2605 Watchlist Candidate",
+      "Classification": "Special Situation",
+      "Investment Thesis": "Attractive niche market positioning with expanding capacity and conservative capital allocation."
+    },
+    {
+      "Rank": 5,
+      "Ticker": "NUVOCO.NS",
+      "Final Score": 68.16,
+      "Allocation %": 10.34,
+      "Position Size (INR)": 10340.0,
+      "Buy Priority": "P4 - Watchlist Buffer / Staggered Entry",
+      "Risk Level": "Elevated Risk (High Volatility)",
+      "Suggested Holding Period": "6 \u2013 12 Months (Tactical Trade)",
+      "Slab-wise Profit Booking": "Slab 1: 20% at +25% | Slab 2: 20% at +50% | Slab 3: 20% at +75% | Slab 4: 20% at +100% | Runner: Hold 20% with 15% trailing stop",
+      "Stop Loss Rule": "Hard Stop Loss: -12.0% from avg cost | Trailing Stop Loss: 15.0% below peak once gain > +50%",
+      "Thesis Break Rules": "Debt-to-Equity ratio exceeds 0.50 ; Two consecutive quarters of QoQ Net Income decline ; Promoter stake reduction > 3.0% in a single quarter ; Auditor resignation or major regulatory warning",
+      "Investment Category": "Monitor",
+      "Classification": "Special Situation",
+      "Investment Thesis": "Attractive niche market positioning with expanding capacity and conservative capital allocation."
+    },
+    {
+      "Rank": 6,
+      "Ticker": "WHIRLPOOL.NS",
+      "Final Score": 67.62,
+      "Allocation %": 9.88,
+      "Position Size (INR)": 9880.0,
+      "Buy Priority": "P4 - Watchlist Buffer / Staggered Entry",
+      "Risk Level": "Elevated Risk (High Volatility)",
+      "Suggested Holding Period": "6 \u2013 12 Months (Tactical Trade)",
+      "Slab-wise Profit Booking": "Slab 1: 20% at +25% | Slab 2: 20% at +50% | Slab 3: 20% at +75% | Slab 4: 20% at +100% | Runner: Hold 20% with 15% trailing stop",
+      "Stop Loss Rule": "Hard Stop Loss: -12.0% from avg cost | Trailing Stop Loss: 15.0% below peak once gain > +50%",
+      "Thesis Break Rules": "Debt-to-Equity ratio exceeds 0.50 ; Two consecutive quarters of QoQ Net Income decline ; Promoter stake reduction > 3.0% in a single quarter ; Auditor resignation or major regulatory warning",
+      "Investment Category": "Monitor",
+      "Classification": "Special Situation",
+      "Investment Thesis": "Attractive niche market positioning with expanding capacity and conservative capital allocation."
+    }
+  ]
+};
+
+    function renderTables() {
+      // Populate Stage 5
+      const tbody5 = document.getElementById('tbody-stage5');
+      tbody5.innerHTML = (DATA.stage5 || []).map(r => `
+        <tr>
+          <td><span class="badge badge-rank">#${r.Rank || '-'}</span></td>
+          <td class="ticker-symbol">${r.Ticker || ''}</td>
+          <td><span class="score-pill">${r['Final Score'] || '-'}</span></td>
+          <td style="font-weight:700; color:#34D399;">${r['Allocation %'] || '-'}%</td>
+          <td style="font-weight:700;">₹${Number(r['Position Size (INR)'] || 0).toLocaleString('en-IN')}</td>
+          <td><span class="badge badge-p1">${r['Buy Priority'] || ''}</span></td>
+          <td>${r['Suggested Holding Period'] || ''}</td>
+          <td style="font-size:11px; color:#94A3B8;">${r['Slab-wise Profit Booking'] || ''}</td>
+          <td style="color:#F43F5E; font-weight:600;">-12.0%</td>
+        </tr>
+      `).join('');
+
+      // Populate Stage 4
+      const tbody4 = document.getElementById('tbody-stage4');
+      tbody4.innerHTML = (DATA.stage4 || []).map(r => `
+        <tr>
+          <td><span class="badge badge-rank">#${r.Rank || '-'}</span></td>
+          <td class="ticker-symbol">${r.Ticker || ''}</td>
+          <td><span class="score-pill" style="color:#60A5FA;">${r['Final Score'] || '-'}</span></td>
+          <td>${r['Financial Score'] || '-'}</td>
+          <td>${r['Momentum Score'] || '-'}</td>
+          <td>${r['AI Business Score'] || '-'}</td>
+          <td><span class="badge badge-exceptional">${r['Investment Category'] || ''}</span></td>
+          <td><span class="badge badge-p2">${r['Classification'] || ''}</span></td>
+          <td style="font-weight:700;">${r['Recommendation'] || ''}</td>
+          <td class="thesis-text">"${r['Investment Thesis'] || ''}"</td>
+        </tr>
+      `).join('');
+
+      // Populate Stage 3
+      const tbody3 = document.getElementById('tbody-stage3');
+      tbody3.innerHTML = (DATA.stage3 || []).map(r => `
+        <tr>
+          <td class="ticker-symbol">${r.Ticker || ''}</td>
+          <td><span class="score-pill" style="color:#A78BFA;">${r['Final AI Score'] || r['AI Business Score'] || '-'}</span></td>
+          <td>${r['Business Quality'] || '-'}</td>
+          <td>${r['Growth Visibility'] || '-'}</td>
+          <td>${r['Management'] || '-'}</td>
+          <td>${r['Competitive Advantage'] || '-'}</td>
+          <td>${r['Risk'] || '-'}</td>
+          <td>${r['Long-Term Potential'] || '-'}</td>
+          <td>${r['Confidence'] || '-'}%</td>
+        </tr>
+      `).join('');
+
+      // Populate Stage 2
+      const tbody2 = document.getElementById('tbody-stage2');
+      tbody2.innerHTML = (DATA.stage2 || []).map(r => `
+        <tr>
+          <td><span class="badge badge-rank">#${r.Rank || '-'}</span></td>
+          <td class="ticker-symbol">${r.Ticker || ''}</td>
+          <td><span class="score-pill" style="color:#34D399;">${r['Momentum Score'] || '-'}</span></td>
+          <td>${r['Revenue Growth Score'] || '-'}</td>
+          <td>${r['Net Income Growth Score'] || '-'}</td>
+          <td>${r['EBITDA Trend Score'] || '-'}</td>
+          <td>${r['Op Margin Trend Score'] || '-'}</td>
+          <td>${r['EPS Trend Score'] || '-'}</td>
+          <td>${r['Debt Trend Score'] || '-'}</td>
+          <td>${r['Active Metrics'] || '-'}</td>
+        </tr>
+      `).join('');
+
+      // Populate Stage 1
+      const tbody1 = document.getElementById('tbody-stage1');
+      tbody1.innerHTML = (DATA.stage1 || []).map(r => `
+        <tr>
+          <td class="ticker-symbol">${r.Ticker || ''}</td>
+          <td>₹${r['Market Cap (Cr)'] || '-'} Cr</td>
+          <td>${Number(r['3M Avg Vol'] || 0).toLocaleString('en-IN')}</td>
+          <td style="color:${Number(r['Debt/Equity']) <= 0.25 ? '#34D399' : '#FBBF24'};">${r['Debt/Equity'] || '-'}</td>
+          <td>₹${r['Q1 Net Income'] || '-'} Cr</td>
+          <td>${r['Current Price'] || '-'}</td>
+          <td><span class="badge badge-p1">${r.Status || 'PASSED'}</span></td>
+        </tr>
+      `).join('');
+
+      // KPI Top Candidate Update
+      if (DATA.stage4 && DATA.stage4.length > 0) {
+        document.getElementById('kpi-top-ticker').innerText = DATA.stage4[0].Ticker.replace('.NS','');
+        document.getElementById('kpi-top-score').innerText = 'Score: ' + DATA.stage4[0]['Final Score'] + ' / 100';
+      }
+      if (DATA.stage1) {
+        document.getElementById('kpi-passed').innerText = DATA.stage1.length;
+      }
+      if (DATA.stage5 && DATA.stage5.length > 0) {
+        let totalCap = 0;
+        DATA.stage5.forEach(function(r) { totalCap += Number(r['Position Size (INR)'] || 0); });
+        if (totalCap > 0) {
+          document.getElementById('kpi-total-capital').innerText = '₹' + Math.round(totalCap).toLocaleString('en-IN');
+        }
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+      event.target.classList.add('active');
+      document.getElementById('pane-' + tabId).classList.add('active');
+    }
+
+    function filterTables() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      document.querySelectorAll('tbody tr').forEach(tr => {
+        const text = tr.innerText.toLowerCase();
+        tr.style.display = text.includes(query) ? '' : 'none';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', renderTables);
+  </script>
+</body>
+</html>
